@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
               //          imageView.ImageView =
                     }
                 }
-            }, 100, 100) // 最初に始動させるまで100ミリ秒、ループの間隔を100ミリ秒 に設定
+            }, 5000, 5000) // 最初に始動させるまで100ミリ秒、ループの間隔を100ミリ秒 に設定
 
         }
 
