@@ -8,10 +8,19 @@ import android.os.Build
 import android.provider.MediaStore
 import android.content.ContentUris
 import kotlinx.android.synthetic.main.activity_main.*
+import android.os.Handler
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
     private val PERMISSIONS_REQUEST_CODE = 100
+
+    private var mTimer: Timer? = null
+
+    // タイマー用の時間のための変数
+    private var mTimerSec = 0.0
+
+    private var mHandler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +40,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             getContentsInfo()
         }
+
+
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -63,6 +75,22 @@ class MainActivity : AppCompatActivity() {
 
             imageView.setImageURI(imageUri)
         }
+
+        play.setOnClickListener {
+            mTimer = Timer()
+            mTimer!!.schedule(object : TimerTask() {
+                override fun run() {
+                    mTimerSec += 5.0
+                    mHandler.post {
+              //          imageView.ImageView =
+                    }
+                }
+            }, 100, 100) // 最初に始動させるまで100ミリ秒、ループの間隔を100ミリ秒 に設定
+
+        }
+
+
+
         cursor.close()
     }
 
