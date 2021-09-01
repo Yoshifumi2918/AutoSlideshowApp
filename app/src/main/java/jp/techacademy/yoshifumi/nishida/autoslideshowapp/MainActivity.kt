@@ -10,17 +10,11 @@ import android.content.ContentUris
 import kotlinx.android.synthetic.main.activity_main.*
 import android.os.Handler
 import java.util.*
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
     private val PERMISSIONS_REQUEST_CODE = 100
-
-    private var mTimer: Timer? = null
-
-    // タイマー用の時間のための変数
-    private var mTimerSec = 0.0
-
-    private var mHandler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +28,10 @@ class MainActivity : AppCompatActivity() {
                 getContentsInfo()
             } else {
                 // 許可されていないので許可ダイアログを表示する
-                requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSIONS_REQUEST_CODE)
+                requestPermissions(
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    PERMISSIONS_REQUEST_CODE
+                )
             }
             // Android 5系以下の場合
         } else {
@@ -42,24 +39,27 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         when (requestCode) {
             PERMISSIONS_REQUEST_CODE ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getContentsInfo()
                 }
         }
-}
+    }
 
     private fun getContentsInfo() {
-    //画像を取得する
+        //画像を取得する
         val resolver = contentResolver
         val cursor = resolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI, //データの種類
-        null, //項目（null = 全項目）
+            null, //項目（null = 全項目）
             null, //フィルタ条件(null = フィルタなし)
             null, //フィルタ用パラメータ
             null //ソート（nullソートなし）
@@ -67,32 +67,64 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        if (cursor!!.moveToFirst()) {
-            // indexからIDを取得し、そのIDから画像のURIを取得する
-            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-            val id = cursor.getLong(fieldIndex)
-            val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-            imageView.setImageURI(imageUri)
+                   if (cursor!!.moveToFirst()) {
+                       // indexからIDを取得し、そのIDから画像のURIを取得する
+
+                       val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                       val id = cursor.getLong(fieldIndex)
+                       val imageUri =
+                           ContentUris.withAppendedId(
+                               MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                               id
+                           )
+
+                       image.setImageURI(imageUri)
+                   }
+
+
+
+        next.setOnClickListener {
+            //nextボタンを押すと画像が変化する
+
+            if (cursor!!.moveToFirst()) {
+
+                do {
+                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor.getLong(fieldIndex)
+                    val imageUri =
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                    image.setImageURI(imageUri)
+
+                } while (cursor.moveToNext())
+
+            }
+
+            cursor.close()
         }
 
-        play.setOnClickListener {
-            mTimer = Timer()
-            mTimer!!.schedule(object : TimerTask() {
-                override fun run() {
-                    mTimerSec += 5.0
-                    mHandler.post {
-              //          imageView.ImageView =
-                    }
+
+
+            back.setOnClickListener {
+
+                if (cursor!!.moveToPrevious()) {
+
+                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor.getLong(fieldIndex)
+                    val imageUri =
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                    image.setImageURI(imageUri)
+
+
                 }
-            }, 5000, 5000) // 最初に始動させるまで100ミリ秒、ループの間隔を100ミリ秒 に設定
+            }
+
 
         }
-
-
-
-        cursor.close()
     }
 
 
-    }
+
+
