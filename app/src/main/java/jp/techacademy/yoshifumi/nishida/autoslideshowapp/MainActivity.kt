@@ -10,11 +10,18 @@ import android.content.ContentUris
 import kotlinx.android.synthetic.main.activity_main.*
 import android.os.Handler
 import java.util.*
-import android.util.Log
+
 
 class MainActivity : AppCompatActivity() {
 
     private val PERMISSIONS_REQUEST_CODE = 100
+
+    private var mTimer: Timer? = null
+
+    // タイマー用の時間のための変数
+    private var mTimerSec = 0.0
+
+    private var mHandler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,62 +75,100 @@ class MainActivity : AppCompatActivity() {
 
 
 
-                   if (cursor!!.moveToFirst()) {
-                       // indexからIDを取得し、そのIDから画像のURIを取得する
+        if (cursor!!.moveToFirst()) {
+            // indexからIDを取得し、そのIDから画像のURIを取得する
 
-                       val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                       val id = cursor.getLong(fieldIndex)
-                       val imageUri =
-                           ContentUris.withAppendedId(
-                               MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                               id
-                           )
+            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val id = cursor.getLong(fieldIndex)
+            val imageUri =
+                ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
 
-                       image.setImageURI(imageUri)
-                   }
+            image.setImageURI(imageUri)
+        }
 
 
 
         next.setOnClickListener {
             //nextボタンを押すと画像が変化する
 
-            if (cursor!!.moveToFirst()) {
+            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val id = cursor.getLong(fieldIndex)
+            val imageUri =
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                do {
-                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor.getLong(fieldIndex)
-                    val imageUri =
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                    image.setImageURI(imageUri)
+            if (cursor!!.moveToNext()) {
 
-                } while (cursor.moveToNext())
+                image.setImageURI(imageUri)
+
+            } else if (cursor!!.moveToFirst()) {
+
+                image.setImageURI(imageUri)
 
             }
 
-            cursor.close()
+        }
+
+
+        back.setOnClickListener {
+            //backボタンを押すと画像が変化する
+
+
+            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val id = cursor.getLong(fieldIndex)
+            val imageUri =
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+
+            if (cursor!!.moveToPrevious()) {
+
+                image.setImageURI(imageUri)
+            } else if (cursor!!.moveToLast()) {
+
+                image.setImageURI(imageUri)
+
+            }
+
         }
 
 
 
-            back.setOnClickListener {
-
-                if (cursor!!.moveToPrevious()) {
-
-                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor.getLong(fieldIndex)
-                    val imageUri =
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
-                    image.setImageURI(imageUri)
+        PlayStop.setOnClickListener {
 
 
-                }
+            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val id = cursor.getLong(fieldIndex)
+            val imageUri =
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+
+            if (mTimer == null) {
+                mTimer = Timer()
+                mTimer!!.schedule(object : TimerTask() {
+                    override fun run() {
+                        mTimerSec += 2.0
+                        mHandler.post {
+
+                            image.setImageURI(imageUri)
+
+                        }
+                    }
+                }, 2000, 2000) // 最初に始動させるまで2000ミリ秒、ループの間隔を2000ミリ秒 に設定
             }
-
-
         }
+
+
     }
+}
+
+
+
+
+
+
 
 
 
