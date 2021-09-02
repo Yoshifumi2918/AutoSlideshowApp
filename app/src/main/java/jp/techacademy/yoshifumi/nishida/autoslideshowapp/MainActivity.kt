@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.content.ContentUris
 import kotlinx.android.synthetic.main.activity_main.*
 import android.os.Handler
+import android.widget.Toast
 import java.util.*
 
 
@@ -57,6 +58,11 @@ class MainActivity : AppCompatActivity() {
             PERMISSIONS_REQUEST_CODE ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getContentsInfo()
+
+                } else {
+
+                    Toast.makeText(this,"パーミッションを許可してください", Toast.LENGTH_LONG).show()
+
                 }
         }
     }
@@ -128,6 +134,7 @@ class MainActivity : AppCompatActivity() {
                 image.setImageURI(imageUri)
             } else if (cursor!!.moveToLast()) {
 
+
                 image.setImageURI(imageUri)
 
             }
@@ -137,32 +144,61 @@ class MainActivity : AppCompatActivity() {
 
 
         PlayStop.setOnClickListener {
-
-
-            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-            val id = cursor.getLong(fieldIndex)
-            val imageUri =
-                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
+   //再生ボタンを押すと、2秒ごとに画像が移る処理
 
             if (mTimer == null) {
+
+
                 mTimer = Timer()
                 mTimer!!.schedule(object : TimerTask() {
+
+
                     override fun run() {
-                        mTimerSec += 2.0
-                        mHandler.post {
 
-                            image.setImageURI(imageUri)
+                        if (cursor!!.moveToNext()) {
 
+                            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor.getLong(fieldIndex)
+                            val imageUri =
+                                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                            mTimerSec += 2.0
+                            mHandler.post {
+
+
+                                image.setImageURI(imageUri)
+
+                                PlayStop.text = "Stop"
+
+                                next.isClickable = false
+
+                                back.isClickable = false
+
+                            }
                         }
                     }
                 }, 2000, 2000) // 最初に始動させるまで2000ミリ秒、ループの間隔を2000ミリ秒 に設定
+
+            } else if(mTimer != null) {
+                mTimer!!.cancel()
+                mTimer = null
+
+                PlayStop.text = "Play"
+
+                next.isClickable = true
+
+                back.isClickable = true
+
             }
+        }
+    }
         }
 
 
-    }
-}
+
+
+
+
 
 
 
